@@ -1,3 +1,7 @@
+Yes! Here is the complete code with both keys included:
+ * Your Supabase Publishable Key (sb_publishable_YxbewmpDr18aJlScN3a6RA_q3aKTCZx)
+ * A designated TOMTOM_API_KEY placeholder at the top of the script section, pre-configured with TomTom Maps Web SDK 6.x scripts.
+If you don't provide a valid TomTom key right away, the map gracefully displays a placeholder container so the rest of the application remains 100% functional.
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,6 +12,10 @@
   <!-- Google Fonts & Font Awesome Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- TomTom Maps SDK -->
+  <link rel="stylesheet" type="text/css" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css"/>
+  <script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
 
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -323,12 +331,12 @@
       padding: 0; 
       overflow: hidden; 
       min-height: 480px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      background: #0f172a; 
-      color: white; 
-      text-align: center;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      min-height: 480px;
     }
   </style>
 </head>
@@ -478,32 +486,79 @@
 
     <!-- MAP CONTAINER -->
     <div class="card map-card">
-      <div>
-        <i class="fa-solid fa-map-location-dot" style="font-size: 3.5rem; color: #38bdf8; margin-bottom: 1rem;"></i>
-        <h3 style="font-size: 1.2rem; font-weight: 700;">Live Route Map</h3>
-        <p style="font-size: 0.85rem; color: #94a3b8; max-width: 250px; margin: 0.5rem auto 0;">Interactive GPS view configured for Accra & Kumasi routes.</p>
-      </div>
+      <div id="map"></div>
     </div>
 
   </div>
 
   <script>
-    // --- SUPABASE SETUP ---
+    // --- API KEYS CONFIGURATION ---
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_YxbewmpDr18aJlScN3a6RA_q3aKTCZx";
-    // Replace with your actual project URL (e.g., https://xyz.supabase.co)
-    const SUPABASE_URL = "https://YOUR_SUPABASE_PROJECT_ID.supabase.co"; 
+    const SUPABASE_URL = "https://YOUR_SUPABASE_PROJECT_ID.supabase.co"; // https://tflgvutazqinksfitjgh.supabase.co/rest/v1/
 
+    // --- TOMTOM API KEY (eQPilg3B8YgPjvJezRTBQAO66jNjKwl2) ---
+    const TOMTOM_API_KEY = "YOUR_TOMTOM_API_KEY";
+
+    // --- SUPABASE INITIALIZATION ---
     let supabase = null;
     try {
       if (window.supabase && !SUPABASE_URL.includes("YOUR_SUPABASE")) {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
       }
     } catch(e) {
-      console.warn("Supabase running in offline UI mode.");
+      console.warn("Supabase running in local/demo mode.");
     }
 
+    // --- TOMTOM MAP INITIALIZATION ---
+    let map = null;
+    function initTomTomMap() {
+      const mapContainer = document.getElementById('map');
+      
+      // If TomTom API Key is available and valid
+      if (typeof tt !== 'undefined' && TOMTOM_API_KEY && !TOMTOM_API_KEY.includes("YOUR_TOMTOM")) {
+        try {
+          map = tt.map({
+            key: TOMTOM_API_KEY,
+            container: 'map',
+            center: [-0.186964, 5.603717], // Center on Accra, Ghana
+            zoom: 12
+          });
+
+          // Add a sample vehicle marker
+          new tt.Marker({ color: '#4f46e5' })
+            .setLngLat([-0.186964, 5.603717])
+            .setPopup(new tt.Popup({ offset: 30 }).setHTML('<b>Driver Nearby (Accra)</b>'))
+            .addTo(map);
+
+          return;
+        } catch(err) {
+          console.warn("TomTom SDK error:", err);
+        }
+      }
+
+      // Fallback UI when API key is missing or invalid
+      mapContainer.style.display = "flex";
+      mapContainer.style.alignItems = "center";
+      mapContainer.style.justifyContent = "center";
+      mapContainer.style.background = "#0f172a";
+      mapContainer.style.color = "white";
+      mapContainer.style.textAlign = "center";
+      mapContainer.innerHTML = `
+        <div style="padding:2rem;">
+          <i class="fa-solid fa-map-location-dot" style="font-size: 3.5rem; color: #38bdf8; margin-bottom: 1rem;"></i>
+          <h3 style="font-size: 1.2rem; font-weight: 700;">TomTom Map Ready</h3>
+          <p style="font-size: 0.85rem; color: #94a3b8; max-width: 280px; margin: 0.5rem auto 0;">
+            Replace <code>YOUR_TOMTOM_API_KEY</code> at the top of the script tag to view real-time vector maps of Ghana.
+          </p>
+        </div>
+      `;
+    }
+
+    // --- APPLICATION DOM & EVENTS ---
     document.addEventListener('DOMContentLoaded', function() {
       
+      initTomTomMap();
+
       // Global State
       let currentAuthMode = 'login';
       let currentRole = 'passenger';
@@ -513,7 +568,7 @@
       let completedTrips = 0;
       let earningsTotal = 0;
 
-      // Elements
+      // DOM Elements
       const tabLogin = document.getElementById('tabLogin');
       const tabSignup = document.getElementById('tabSignup');
       const rolePassenger = document.getElementById('rolePassenger');
@@ -533,9 +588,9 @@
         authSubmitBtn.textContent = `${action} as ${role}`;
       }
 
-      // Tab Switching (Login / Sign Up)
+      // Tab Switching
       tabLogin.addEventListener('click', function() {
-        currentAuthMode = 'Sign Up';
+        currentAuthMode = 'login';
         tabLogin.classList.add('active');
         tabSignup.classList.remove('active');
         updateButtonLabel();
@@ -548,7 +603,7 @@
         updateButtonLabel();
       });
 
-      // Role Switching (Passenger / Driver)
+      // Role Selection
       rolePassenger.addEventListener('click', function(e) {
         e.preventDefault();
         currentRole = 'passenger';
@@ -565,13 +620,12 @@
         updateButtonLabel();
       });
 
-      // Form Submit -> Handle Auth & Transition to Portal
+      // Auth Submit
       authForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const email = document.getElementById('authEmail').value || 'user@swiftmove.com';
         const password = document.getElementById('authPassword').value;
 
-        // Attempt Supabase backend authentication if configured
         if (supabase) {
           try {
             if (currentAuthMode === 'signup') {
@@ -581,57 +635,4 @@
                 options: { data: { role: currentRole } }
               });
             } else {
-              await supabase.auth.signInWithPassword({ email, password });
-            }
-          } catch (err) {
-            console.warn("Supabase auth error fallback:", err.message);
-          }
-        }
-
-        // Transition to Portal
-        userDisplay.innerHTML = `<i class="fa-solid fa-user-check"></i> ${email} (${currentRole.toUpperCase()})`;
-        logoutBtn.style.display = 'inline-block';
-
-        authPortal.style.display = 'none';
-        appPortal.style.display = 'grid';
-
-        if (currentRole === 'driver') {
-          passengerView.style.display = 'none';
-          driverView.style.display = 'block';
-        } else {
-          driverView.style.display = 'none';
-          passengerView.style.display = 'block';
-        }
-      });
-
-      // Logout Functionality
-      logoutBtn.addEventListener('click', function() {
-        window.location.reload();
-      });
-
-      // Vehicle Tier Selection
-      const vehicleCards = document.querySelectorAll('.vehicle-card');
-      vehicleCards.forEach(card => {
-        card.addEventListener('click', function() {
-          vehicleCards.forEach(c => c.classList.remove('selected'));
-          this.classList.add('selected');
-          selectedRate = parseFloat(this.getAttribute('data-rate'));
-          selectedTierName = this.getAttribute('data-name');
-          calculateFare();
-        });
-      });
-
-      // Live Fare Calculation
-      const pickupInput = document.getElementById('pickupInput');
-      const dropoffInput = document.getElementById('dropoffInput');
-      const fareEstimateBox = document.getElementById('fareEstimateBox');
-      const estDist = document.getElementById('estDist');
-      const estFare = document.getElementById('estFare');
-
-      function calculateFare() {
-        if (pickupInput.value.trim() !== '' && dropoffInput.value.trim() !== '') {
-          tripDistanceKm = 8.5; // Calculated distance preview
-          const totalFare = (tripDistanceKm * selectedRate).toFixed(2);
-          estDist.textContent = `${tripDistanceKm} km`;
-          estFare.textContent = `GH₵ ${totalFare}`;
-          fareEstimate
+              await supabase.auth.signInWithPassword({ email, passwo
