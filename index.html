@@ -9,10 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- TomTom Maps SDK -->
-  <link rel="stylesheet" type="text/css" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css"/>
-  <script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
-
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -106,7 +102,7 @@
 
     .auth-tabs {
       display: flex;
-      background: rgba(241, 245, 249, 1);
+      background: #f1f5f9;
       padding: 4px;
       border-radius: 12px;
       margin-bottom: 1.5rem;
@@ -127,7 +123,7 @@
     .auth-tab.active {
       background: #ffffff;
       color: var(--primary);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
     }
 
     .role-toggle {
@@ -169,7 +165,6 @@
       gap: 2rem;
       width: 100%;
       flex: 1;
-      display: none; /* Displayed after login/signup */
     }
 
     @media (max-width: 968px) {
@@ -315,6 +310,7 @@
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
+      user-select: none;
     }
 
     .vehicle-card.selected {
@@ -322,9 +318,18 @@
       background: #e0e7ff33;
     }
 
-    /* Map Card */
-    .map-card { padding: 0; overflow: hidden; min-height: 480px; }
-    #map { width: 100%; height: 100%; min-height: 480px; }
+    /* Map Box Card */
+    .map-card { 
+      padding: 0; 
+      overflow: hidden; 
+      min-height: 480px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      background: #0f172a; 
+      color: white; 
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -337,7 +342,7 @@
     </div>
     <div class="user-badge">
       <span id="userDisplay"><i class="fa-solid fa-circle-user"></i> Please Login</span>
-      <button id="logoutBtn" class="logout-btn" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i></button>
+      <button id="logoutBtn" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
   </header>
 
@@ -345,18 +350,18 @@
   <div class="auth-wrapper" id="authPortal">
     <div class="card">
       <div class="auth-tabs">
-        <div class="auth-tab active" id="tabLogin" onclick="switchAuthMode('login')">Login</div>
-        <div class="auth-tab" id="tabSignup" onclick="switchAuthMode('signup')">Sign Up</div>
+        <div class="auth-tab active" id="tabLogin">Login</div>
+        <div class="auth-tab" id="tabSignup">Sign Up</div>
       </div>
 
       <p style="text-align: center; margin-bottom: 1rem; font-weight: 700; color: #64748b; font-size: 0.85rem;">I AM A:</p>
       <div class="role-toggle">
-        <div class="role-btn active" id="rolePassenger" onclick="selectRole('passenger')">
+        <button type="button" class="role-btn active" id="rolePassenger">
           <i class="fa-solid fa-user"></i> Passenger
-        </div>
-        <div class="role-btn" id="roleDriver" onclick="selectRole('driver')">
+        </button>
+        <button type="button" class="role-btn" id="roleDriver">
           <i class="fa-solid fa-car-side"></i> Driver
-        </div>
+        </button>
       </div>
 
       <form id="authForm">
@@ -384,7 +389,7 @@
   </div>
 
   <!-- MAIN APP CONTAINER (Passenger & Driver Dashboard) -->
-  <div class="app-container" id="appPortal">
+  <div class="app-container" id="appPortal" style="display: none;">
     
     <!-- PASSENGER VIEW -->
     <div class="card" id="passengerView">
@@ -412,15 +417,15 @@
 
         <label>Service Vehicle Tier</label>
         <div class="vehicle-options">
-          <div class="vehicle-card selected" onclick="setServiceTier(this, 4, 'Swift Express (Bike)')">
+          <div class="vehicle-card selected" data-rate="4" data-name="Swift Express (Bike)">
             <div><strong>Swift Express (Bike)</strong><br><small style="color: #64748b;">Fast parcel dispatch</small></div>
             <div style="font-weight: 800; color: var(--primary);">GH₵ 4 / km</div>
           </div>
-          <div class="vehicle-card" onclick="setServiceTier(this, 7, 'Swift Ride (Car)')">
+          <div class="vehicle-card" data-rate="7" data-name="Swift Ride (Car)">
             <div><strong>Swift Ride (Car)</strong><br><small style="color: #64748b;">Passenger ride & delivery</small></div>
             <div style="font-weight: 800; color: var(--primary);">GH₵ 7 / km</div>
           </div>
-          <div class="vehicle-card" onclick="setServiceTier(this, 9, 'Swift Haul (Truck)')">
+          <div class="vehicle-card" data-rate="9" data-name="Swift Haul (Truck)">
             <div><strong>Swift Haul (Truck)</strong><br><small style="color: #64748b;">Heavy cargo dispatch</small></div>
             <div style="font-weight: 800; color: var(--primary);">GH₵ 9 / km</div>
           </div>
@@ -455,7 +460,6 @@
 
       <h4 style="margin-bottom: 1rem; font-size: 1rem;">Incoming Ride Requests</h4>
       <div id="requestsFeed">
-        <!-- Sample orders for live preview -->
         <div class="ride-request-card" id="order-demo1">
           <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 1.1rem; color: var(--primary);">
             <span>Swift Express (Bike)</span>
@@ -465,8 +469,8 @@
           <p style="margin-top: 4px; font-size: 0.85rem;"><i class="fa-solid fa-location-pin" style="color: #ef4444;"></i> <strong>To:</strong> Kotoka Int. Airport</p>
           <p style="margin-top: 4px; font-size: 0.8rem; color: #64748b;">Distance: 8.0 km</p>
           <div class="request-actions">
-            <button class="btn-accept" onclick="acceptTrip('demo1', 32.00)">Accept Trip</button>
-            <button class="btn-decline" onclick="declineTrip('demo1')">Decline</button>
+            <button class="btn-accept" data-order="demo1" data-fare="32.00">Accept Trip</button>
+            <button class="btn-decline" data-order="demo1">Decline</button>
           </div>
         </div>
       </div>
@@ -474,160 +478,160 @@
 
     <!-- MAP CONTAINER -->
     <div class="card map-card">
-      <div id="map"></div>
+      <div>
+        <i class="fa-solid fa-map-location-dot" style="font-size: 3.5rem; color: #38bdf8; margin-bottom: 1rem;"></i>
+        <h3 style="font-size: 1.2rem; font-weight: 700;">Live Route Map</h3>
+        <p style="font-size: 0.85rem; color: #94a3b8; max-width: 250px; margin: 0.5rem auto 0;">Interactive GPS view configured for Accra & Kumasi routes.</p>
+      </div>
     </div>
 
   </div>
 
   <script>
-    // --- CONFIGURATION ---
-    const TOMTOM_API_KEY = "eQPilg3B8YgPjvJezRTBQAO66jNjKwl2"; 
+    // --- SUPABASE SETUP ---
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_YxbewmpDr18aJlScN3a6RA_q3aKTCZx";
+    // Replace with your actual project URL (e.g., https://xyz.supabase.co)
     const SUPABASE_URL = "https://YOUR_SUPABASE_PROJECT_ID.supabase.co"; 
-    const SUPABASE_PUBLISHABLE_KEY = "Sb_publishable_CazTNV2OzvBuZIiHH9tlxA_GrwIzeKY";
 
-    // Safe Supabase Initialization
     let supabase = null;
     try {
-      if (SUPABASE_URL.includes("YOUR_SUPABASE")) {
-        console.warn("Supabase running in local/demo mode (Replace credentials for live DB).");
-      } else {
+      if (window.supabase && !SUPABASE_URL.includes("YOUR_SUPABASE")) {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
       }
     } catch(e) {
-      console.warn("Supabase initialization bypassed for preview mode.");
+      console.warn("Supabase running in offline UI mode.");
     }
 
-    // --- STATE ---
-    let authMode = 'login'; 
-    let selectedRole = 'passenger'; 
-    let currentUser = null;
-    let ratePerKm = 4;
-    let selectedTierName = 'Swift Express (Bike)';
-    let calculatedKm = 0;
+    document.addEventListener('DOMContentLoaded', function() {
+      
+      // Global State
+      let currentAuthMode = 'login';
+      let currentRole = 'passenger';
+      let selectedRate = 4;
+      let selectedTierName = 'Swift Express (Bike)';
+      let tripDistanceKm = 0;
+      let completedTrips = 0;
+      let earningsTotal = 0;
 
-    // Safe TomTom Map Initialization
-    let map = null;
-    try {
-      map = tt.map({
-        key: TOMTOM_API_KEY.includes("YOUR_") ? "8W4A5G6H7J8K9L0M1N2O3P4Q5R6S7T8U" : TOMTOM_API_KEY,
-        container: 'map',
-        center: [-0.186964, 5.603717], // Accra, Ghana
-        zoom: 12
+      // Elements
+      const tabLogin = document.getElementById('tabLogin');
+      const tabSignup = document.getElementById('tabSignup');
+      const rolePassenger = document.getElementById('rolePassenger');
+      const roleDriver = document.getElementById('roleDriver');
+      const authSubmitBtn = document.getElementById('authSubmitBtn');
+      const authForm = document.getElementById('authForm');
+      const authPortal = document.getElementById('authPortal');
+      const appPortal = document.getElementById('appPortal');
+      const passengerView = document.getElementById('passengerView');
+      const driverView = document.getElementById('driverView');
+      const userDisplay = document.getElementById('userDisplay');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      function updateButtonLabel() {
+        const action = currentAuthMode === 'login' ? 'Login' : 'Sign Up';
+        const role = currentRole === 'passenger' ? 'Passenger' : 'Driver';
+        authSubmitBtn.textContent = `${action} as ${role}`;
+      }
+
+      // Tab Switching (Login / Sign Up)
+      tabLogin.addEventListener('click', function() {
+        currentAuthMode = 'login';
+        tabLogin.classList.add('active');
+        tabSignup.classList.remove('active');
+        updateButtonLabel();
       });
-    } catch(e) {
-      document.getElementById('map').innerHTML = `<div style="padding:2rem; text-align:center; color:#64748b;"><i class="fa-solid fa-map-location-dot" style="font-size:3rem; margin-bottom:1rem; color:#4f46e5;"></i><br>Interactive Map Ready (Add TomTom API Key to render live maps)</div>`;
-    }
 
-    // --- AUTH UI TOGGLES ---
-    function switchAuthMode(mode) {
-      authMode = mode;
-      document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
-      document.getElementById('tabSignup').classList.toggle('active', mode === 'signup');
-      updateAuthBtnText();
-    }
+      tabSignup.addEventListener('click', function() {
+        currentAuthMode = 'signup';
+        tabSignup.classList.add('active');
+        tabLogin.classList.remove('active');
+        updateButtonLabel();
+      });
 
-    function selectRole(role) {
-      selectedRole = role;
-      document.getElementById('rolePassenger').classList.toggle('active', role === 'passenger');
-      document.getElementById('roleDriver').classList.toggle('active', role === 'driver');
-      updateAuthBtnText();
-    }
+      // Role Switching (Passenger / Driver)
+      rolePassenger.addEventListener('click', function(e) {
+        e.preventDefault();
+        currentRole = 'passenger';
+        rolePassenger.classList.add('active');
+        roleDriver.classList.remove('active');
+        updateButtonLabel();
+      });
 
-    function updateAuthBtnText() {
-      const btn = document.getElementById('authSubmitBtn');
-      const action = authMode === 'login' ? 'Login' : 'Sign Up';
-      const roleText = selectedRole === 'passenger' ? 'Passenger' : 'Driver';
-      btn.textContent = `${action} as ${roleText}`;
-    }
+      roleDriver.addEventListener('click', function(e) {
+        e.preventDefault();
+        currentRole = 'driver';
+        roleDriver.classList.add('active');
+        rolePassenger.classList.remove('active');
+        updateButtonLabel();
+      });
 
-    // --- SUBMIT HANDLER ---
-    document.getElementById('authForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('authEmail').value || "user@swiftmove.com";
-      
-      // Attempt Supabase backend login/signup if configured
-      if (supabase) {
-        try {
-          const password = document.getElementById('authPassword').value;
-          if (authMode === 'signup') {
-            await supabase.auth.signUp({ email, password, options: { data: { role: selectedRole } } });
-          } else {
-            await supabase.auth.signInWithPassword({ email, password });
+      // Form Submit -> Handle Auth & Transition to Portal
+      authForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = document.getElementById('authEmail').value || 'user@swiftmove.com';
+        const password = document.getElementById('authPassword').value;
+
+        // Attempt Supabase backend authentication if configured
+        if (supabase) {
+          try {
+            if (currentAuthMode === 'signup') {
+              await supabase.auth.signUp({
+                email,
+                password,
+                options: { data: { role: currentRole } }
+              });
+            } else {
+              await supabase.auth.signInWithPassword({ email, password });
+            }
+          } catch (err) {
+            console.warn("Supabase auth error fallback:", err.message);
           }
-        } catch (err) {
-          console.warn("Supabase auth error, falling back to instant preview:", err.message);
         }
-      }
 
-      // Enter Portal
-      currentUser = { email: email, role: selectedRole };
-      setupDashboardView();
-    });
+        // Transition to Portal
+        userDisplay.innerHTML = `<i class="fa-solid fa-user-check"></i> ${email} (${currentRole.toUpperCase()})`;
+        logoutBtn.style.display = 'inline-block';
 
-    function setupDashboardView() {
-      document.getElementById('authPortal').style.display = 'none';
-      document.getElementById('appPortal').style.display = 'grid';
-      document.getElementById('logoutBtn').style.display = 'inline-block';
+        authPortal.style.display = 'none';
+        appPortal.style.display = 'grid';
 
-      const userRole = currentUser.role || selectedRole;
-      document.getElementById('userDisplay').innerHTML = `<i class="fa-solid fa-user-check"></i> ${currentUser.email} (${userRole.toUpperCase()})`;
+        if (currentRole === 'driver') {
+          passengerView.style.display = 'none';
+          driverView.style.display = 'block';
+        } else {
+          driverView.style.display = 'none';
+          passengerView.style.display = 'block';
+        }
+      });
 
-      if (userRole === 'driver') {
-        document.getElementById('passengerView').style.display = 'none';
-        document.getElementById('driverView').style.display = 'block';
-      } else {
-        document.getElementById('driverView').style.display = 'none';
-        document.getElementById('passengerView').style.display = 'block';
-      }
-    }
+      // Logout Functionality
+      logoutBtn.addEventListener('click', function() {
+        window.location.reload();
+      });
 
-    function handleLogout() {
-      window.location.reload();
-    }
+      // Vehicle Tier Selection
+      const vehicleCards = document.querySelectorAll('.vehicle-card');
+      vehicleCards.forEach(card => {
+        card.addEventListener('click', function() {
+          vehicleCards.forEach(c => c.classList.remove('selected'));
+          this.classList.add('selected');
+          selectedRate = parseFloat(this.getAttribute('data-rate'));
+          selectedTierName = this.getAttribute('data-name');
+          calculateFare();
+        });
+      });
 
-    // --- PASSENGER LOGIC ---
-    function setServiceTier(el, rate, name) {
-      document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
-      el.classList.add('selected');
-      ratePerKm = rate;
-      selectedTierName = name;
-      updateFareDisplay();
-    }
+      // Live Fare Calculation
+      const pickupInput = document.getElementById('pickupInput');
+      const dropoffInput = document.getElementById('dropoffInput');
+      const fareEstimateBox = document.getElementById('fareEstimateBox');
+      const estDist = document.getElementById('estDist');
+      const estFare = document.getElementById('estFare');
 
-    function calculateDistance() {
-      const pVal = document.getElementById('pickupInput').value;
-      const dVal = document.getElementById('dropoffInput').value;
-      
-      if (pVal && dVal) {
-        // Mock distance calculation fallback
-        calculatedKm = 7.5; 
-        updateFareDisplay();
-      }
-    }
-
-    function updateFareDisplay() {
-      if (calculatedKm > 0) {
-        const fare = (calculatedKm * ratePerKm).toFixed(2);
-        document.getElementById('estDist').textContent = `${calculatedKm} km`;
-        document.getElementById('estFare').textContent = `GH₵ ${fare}`;
-        document.getElementById('fareEstimateBox').style.display = 'block';
-      }
-    }
-
-    document.getElementById('pickupInput').addEventListener('input', calculateDistance);
-    document.getElementById('dropoffInput').addEventListener('input', calculateDistance);
-
-    document.getElementById('passengerBookingForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      alert("⚡ Booking submitted successfully! Nearby drivers have been notified.");
-    });
-
-    // --- DRIVER FEED LOGIC ---
-    let completedTrips = 0;
-    let earningsTotal = 0;
-
-    function acceptTrip(orderId, fareGhc) {
-      completedTrips += 1;
-      earningsTotal += fareGhc;
-
-      document
+      function calculateFare() {
+        if (pickupInput.value.trim() !== '' && dropoffInput.value.trim() !== '') {
+          tripDistanceKm = 8.5; // Calculated distance preview
+          const totalFare = (tripDistanceKm * selectedRate).toFixed(2);
+          estDist.textContent = `${tripDistanceKm} km`;
+          estFare.textContent = `GH₵ ${totalFare}`;
+          fareEstimate
