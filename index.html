@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swiftmove Logistics | Book a Ride & Delivery</title>
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    /* Header & Navigation */
+    header {
+      background-color: var(--primary);
+      color: white;
+      padding: 1rem 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-badge {
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card Styling */
+    .card {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      margin-bottom: 1.5rem;
+      color: var(--primary);
+      font-size: 1.3rem;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    /* Vehicle Options Cards */
+    .vehicle-options {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .vehicle-card {
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .vehicle-card:hover {
+      border-color: var(--accent);
+    }
+
+    .vehicle-card.selected {
+      border-color: var(--accent);
+      background-color: #eff6ff;
+    }
+
+    .vehicle-info h4 {
+      font-size: 1rem;
+      color: var(--primary);
+    }
+
+    .vehicle-info p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .vehicle-price {
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: var(--accent);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: #1d4ed8;
+    }
+
+    /* Mock Map Display */
+    .map-preview {
+      width: 100%;
+      height: 100%;
+      min-height: 350px;
+      background: #e2e8f0;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: var(--text-muted);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .map-placeholder-text {
+      text-align: center;
+      z-index: 2;
+    }
+
+    /* Fare Summary Box */
+    .fare-summary {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f1f5f9;
+      border-radius: 8px;
+      border-left: 4px solid var(--accent);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">⚡ Swiftmove Logistics</div>
+    <div class="user-badge" id="userDisplay">Loading account...</div>
+  </header>
+
+  <div class="container">
+    <!-- Booking Form -->
+    <div class="card">
+      <h2>Book Pickup or Delivery</h2>
+      
+      <form id="bookingForm">
+        <div class="form-group">
+          <label for="pickup">Pickup Location</label>
+          <input type="text" id="pickup" placeholder="Enter pickup address" required>
+        </div>
+
+        <div class="form-group">
+          <label for="dropoff">Dropoff Location</label>
+          <input type="text" id="dropoff" placeholder="Enter destination address" required>
+        </div>
+
+        <label>Select Service Type</label>
+        <div class="vehicle-options">
+          <div class="vehicle-card selected" onclick="selectVehicle(this, 3.5)" data-type="Swift Express (Bike)">
+            <div class="vehicle-info">
+              <h4>Swift Express</h4>
+              <p>Fast bike dispatch for packages</p>
+            </div>
+            <div class="vehicle-price">GH₵ 15 - 30</div>
+          </div>
+
+          <div class="vehicle-card" onclick="selectVehicle(this, 6.0)" data-type="Swift Ride (Car)">
+            <div class="vehicle-info">
+              <h4>Swift Ride</h4>
+              <p>Standard passenger ride</p>
+            </div>
+            <div class="vehicle-price">GH₵ 35 - 60</div>
+          </div>
+
+          <div class="vehicle-card" onclick="selectVehicle(this, 12.0)" data-type="Swift Haul (Van/Truck)">
+            <div class="vehicle-info">
+              <h4>Swift Haul</h4>
+              <p>Heavy cargo and large deliveries</p>
+            </div>
+            <div class="vehicle-price">GH₵ 80+</div>
+          </div>
+        </div>
+
+        <div class="fare-summary" id="fareSummary">
+          <p>Estimated Distance: <strong id="estDistance">0 km</strong></p>
+          <p>Total Estimated Fee: <strong id="estFare">GH₵ 0.00</strong></p>
+        </div>
+
+        <button type="submit" class="btn" style="margin-top: 1rem;">Confirm & Request Swiftmove</button>
+      </form>
+    </div>
+
+    <!-- Map Section -->
+    <div class="map-preview">
+      <div class="map-placeholder-text">
+        <p style="font-size: 2rem;">📍</p>
+        <p>Live Route Tracking</p>
+        <small>(Connects to Google Maps / Mapbox API)</small>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 1. Manage User State on Load
+    document.addEventListener("DOMContentLoaded", () => {
+      const userDisplay = document.getElementById("userDisplay");
+      
+      // Fetch user info from localStorage or set a default
+      const savedUser = JSON.parse(localStorage.getItem("swiftmoveUser")) || { name: "Guest Customer" };
+      userDisplay.textContent = `👤 ${savedUser.name}`;
+    });
+
+    // 2. Service Selection Handling
+    let selectedMultiplier = 3.5;
+    let selectedType = "Swift Express (Bike)";
+
+    function selectVehicle(element, multiplier) {
+      document.querySelectorAll('.vehicle-card').forEach(card => card.classList.remove('selected'));
+      element.classList.add('selected');
+      selectedMultiplier = multiplier;
+      selectedType = element.getAttribute('data-type');
+      calculateFare();
+    }
+
+    // 3. Dynamic Fare Calculation Logic
+    const pickupInput = document.getElementById('pickup');
+    const dropoffInput = document.getElementById('dropoff');
+
+    pickupInput.addEventListener('input', calculateFare);
+    dropoffInput.addEventListener('input', calculateFare);
+
+    function calculateFare() {
+      const pickup = pickupInput.value.trim();
+      const dropoff = dropoffInput.value.trim();
+
+      if (pickup !== "" && dropoff !== "") {
+        const mockDistanceKm = Math.max(2, (pickup.length + dropoff.length) % 15 + 2);
+        const baseFare = 10.00;
+        const totalFare = (baseFare + (mockDistanceKm * selectedMultiplier)).toFixed(2);
+
+        document.getElementById('estDistance').textContent = `${mockDistanceKm} km`;
+        document.getElementById('estFare').textContent = `GH₵ ${totalFare}`;
+        document.getElementById('fareSummary').style.display = 'block';
+      } else {
+        document.getElementById('fareSummary').style.display = 'none';
+      }
+    }
+
+    // 4. Form Submission
+    document.getElementById('bookingForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const pickup = pickupInput.value;
+      const dropoff = dropoffInput.value;
+      const fare = document.getElementById('estFare').textContent;
+
+      alert(`⚡ Swiftmove Order Placed!\n\nPickup: ${pickup}\nDropoff: ${dropoff}\nService: ${selectedType}\nEstimated Cost: ${fare}`);
+    });
+  </script>
+</body>
+</html>
