@@ -3,329 +3,664 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Swiftmove Logistics | Book a Ride & Delivery</title>
+  <title>Swiftmove Logistics | Fast Rides & Deliveries in Ghana</title>
+  
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- TomTom Maps SDK -->
+  <link rel="stylesheet" type="text/css" href="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps.css"/>
+  <script src="https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.25.0/maps/maps-web.min.js"></script>
+
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     :root {
-      --primary: #0f172a;
-      --accent: #2563eb;
-      --bg: #f8fafc;
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --secondary: #06b6d4;
+      --accent-orange: #f97316;
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
       --card-bg: #ffffff;
-      --text: #1e293b;
+      --text: #0f172a;
       --text-muted: #64748b;
       --border: #e2e8f0;
+      --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
     body {
-      background-color: var(--bg);
+      background: var(--bg-gradient);
+      min-height: 100vh;
       color: var(--text);
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Header & Navigation */
+    /* --- Navbar --- */
     header {
-      background-color: var(--primary);
-      color: white;
-      padding: 1rem 5%;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1.2rem 8%;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
 
     .logo {
-      font-size: 1.4rem;
-      font-weight: bold;
-      letter-spacing: 0.5px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo span {
+      background: linear-gradient(135deg, #38bdf8, #818cf8, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .user-badge {
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      padding: 0.5rem 1.2rem;
+      border-radius: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .user-badge {
-      font-size: 0.9rem;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 0.4rem 0.8rem;
-      border-radius: 20px;
-    }
-
-    /* Main Container */
+    /* --- Layout Container --- */
     .container {
-      max-width: 1100px;
-      margin: 2rem auto;
-      padding: 0 1rem;
+      max-width: 1250px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1.1fr;
       gap: 2rem;
+      width: 100%;
+      flex: 1;
     }
 
-    @media (max-width: 768px) {
-      .container {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 968px) {
+      .container { grid-template-columns: 1fr; }
     }
 
-    /* Card Styling */
     .card {
       background: var(--card-bg);
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 2.2rem;
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      position: relative;
     }
 
-    h2 {
-      margin-bottom: 1.5rem;
-      color: var(--primary);
-      font-size: 1.3rem;
+    .card-header {
+      margin-bottom: 1.8rem;
     }
 
-    /* Form Fields */
+    .card-header h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-header p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* --- Form & Autocomplete Dropdowns --- */
     .form-group {
       margin-bottom: 1.2rem;
+      position: relative;
     }
 
     label {
       display: block;
       margin-bottom: 0.5rem;
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    input, select {
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+
+    input {
       width: 100%;
-      padding: 0.8rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 1rem;
+      padding: 0.9rem 1rem 0.9rem 2.8rem;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 500;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s ease;
+      background: #f8fafc;
     }
 
-    input:focus, select:focus {
-      border-color: var(--accent);
+    input:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
     }
 
-    /* Vehicle Options Cards */
+    .suggestions-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 50;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .suggestion-item {
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .suggestion-item:last-child { border-bottom: none; }
+
+    .suggestion-item:hover {
+      background: #f0fdf4;
+      color: var(--primary);
+    }
+
+    /* --- Vehicle Cards --- */
     .vehicle-options {
       display: grid;
-      gap: 1rem;
+      gap: 0.9rem;
+      margin-top: 0.5rem;
       margin-bottom: 1.5rem;
     }
 
     .vehicle-card {
       border: 2px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem;
+      border-radius: 16px;
+      padding: 1.1rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      background: #ffffff;
     }
 
     .vehicle-card:hover {
-      border-color: var(--accent);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
     }
 
     .vehicle-card.selected {
-      border-color: var(--accent);
-      background-color: #eff6ff;
+      border-color: var(--primary);
+      background: linear-gradient(135deg, #eeef2a10, #4f46e50d);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
     }
 
-    .vehicle-info h4 {
-      font-size: 1rem;
+    .vehicle-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .bike-bg { background: #e0f2fe; color: #0284c7; }
+    .car-bg { background: #e0e7ff; color: #4338ca; }
+    .truck-bg { background: #ffedd5; color: #ea580c; }
+
+    .vehicle-info h4 { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .vehicle-info p { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+    
+    .vehicle-price {
+      text-align: right;
+    }
+
+    .price-rate {
+      font-weight: 800;
+      font-size: 1.15rem;
       color: var(--primary);
     }
 
-    .vehicle-info p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: #f1f5f9;
+      color: #64748b;
     }
 
-    .vehicle-price {
-      font-weight: bold;
+    /* --- Fare Summary Box --- */
+    .fare-summary {
+      margin-bottom: 1.2rem;
+      padding: 1.2rem;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      border-radius: 16px;
+      color: white;
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fare-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    .fare-row.total {
+      margin-top: 0.8rem;
+      padding-top: 0.8rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
       font-size: 1.1rem;
-      color: var(--accent);
+      font-weight: 700;
+      color: #ffffff;
     }
 
-    /* Buttons */
+    .fare-row.total span:last-child {
+      color: #38bdf8;
+      font-size: 1.3rem;
+    }
+
+    /* --- Buttons --- */
     .btn {
       width: 100%;
-      padding: 1rem;
-      background: var(--accent);
+      padding: 1.1rem;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 14px;
       font-size: 1rem;
-      font-weight: bold;
+      font-weight: 700;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.25s ease;
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
     }
 
     .btn:hover {
-      background: #1d4ed8;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 25px rgba(79, 70, 229, 0.45);
     }
 
-    /* Mock Map Display */
-    .map-preview {
+    .btn:active { transform: translateY(0); }
+
+    /* --- Map styling --- */
+    .map-card {
+      padding: 0;
+      overflow: hidden;
+      min-height: 480px;
+      border: 4px solid rgba(255, 255, 255, 0.2);
+    }
+
+    #map {
       width: 100%;
       height: 100%;
-      min-height: 350px;
-      background: #e2e8f0;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: var(--text-muted);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .map-placeholder-text {
-      text-align: center;
-      z-index: 2;
-    }
-
-    /* Fare Summary Box */
-    .fare-summary {
-      margin-top: 1rem;
-      padding: 1rem;
-      background: #f1f5f9;
-      border-radius: 8px;
-      border-left: 4px solid var(--accent);
-      display: none;
+      min-height: 480px;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="logo">⚡ Swiftmove Logistics</div>
-    <div class="user-badge" id="userDisplay">Loading account...</div>
+    <div class="logo">
+      <i class="fa-solid fa-bolt-lightning" style="color: #f59e0b;"></i>
+      <span>Swiftmove Logistics</span>
+    </div>
+    <div class="user-badge" id="userDisplay">
+      <i class="fa-solid fa-circle-user"></i> Loading account...
+    </div>
   </header>
 
   <div class="container">
     <!-- Booking Form -->
     <div class="card">
-      <h2>Book Pickup or Delivery</h2>
+      <div class="card-header">
+        <h2><i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> Express Delivery & Ride</h2>
+        <p>Get instant live calculations for logistics across Ghana</p>
+      </div>
       
-      <form id="bookingForm">
+      <form id="bookingForm" autocomplete="off">
+        <!-- Pickup Field -->
         <div class="form-group">
-          <label for="pickup">Pickup Location</label>
-          <input type="text" id="pickup" placeholder="Enter pickup address" required>
+          <label for="pickup">Pickup Address</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-circle-dot" style="color: #22c55e;"></i>
+            <input type="text" id="pickup" placeholder="e.g. Osu, Accra" required>
+          </div>
+          <div id="pickupSuggestions" class="suggestions-list"></div>
         </div>
 
+        <!-- Dropoff Field -->
         <div class="form-group">
-          <label for="dropoff">Dropoff Location</label>
-          <input type="text" id="dropoff" placeholder="Enter destination address" required>
+          <label for="dropoff">Dropoff Address</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-location-pin" style="color: #ef4444;"></i>
+            <input type="text" id="dropoff" placeholder="e.g. Kotoka International Airport" required>
+          </div>
+          <div id="dropoffSuggestions" class="suggestions-list"></div>
         </div>
 
-        <label>Select Service Type</label>
+        <!-- Service Tiers -->
+        <label>Select Transport Tier</label>
         <div class="vehicle-options">
-          <div class="vehicle-card selected" onclick="selectVehicle(this, 3.5)" data-type="Swift Express (Bike)">
-            <div class="vehicle-info">
-              <h4>Swift Express</h4>
-              <p>Fast bike dispatch for packages</p>
+          
+          <div class="vehicle-card selected" onclick="selectVehicle(this, 4)" data-type="Swift Express (Bike)">
+            <div class="vehicle-left">
+              <div class="icon-box bike-bg">
+                <i class="fa-solid fa-motorcycle"></i>
+              </div>
+              <div class="vehicle-info">
+                <h4>Swift Express <span class="badge">Bike</span></h4>
+                <p>Fast light parcel dispatch</p>
+              </div>
             </div>
-            <div class="vehicle-price">GH₵ 15 - 30</div>
+            <div class="vehicle-price">
+              <div class="price-rate">GH₵ 4 <span style="font-size:0.75rem; color:#64748b;">/km</span></div>
+            </div>
           </div>
 
-          <div class="vehicle-card" onclick="selectVehicle(this, 6.0)" data-type="Swift Ride (Car)">
-            <div class="vehicle-info">
-              <h4>Swift Ride</h4>
-              <p>Standard passenger ride</p>
+          <div class="vehicle-card" onclick="selectVehicle(this, 7)" data-type="Swift Ride (Car)">
+            <div class="vehicle-left">
+              <div class="icon-box car-bg">
+                <i class="fa-solid fa-car"></i>
+              </div>
+              <div class="vehicle-info">
+                <h4>Swift Ride <span class="badge">Car</span></h4>
+                <p>Standard passenger ride & packages</p>
+              </div>
             </div>
-            <div class="vehicle-price">GH₵ 35 - 60</div>
+            <div class="vehicle-price">
+              <div class="price-rate">GH₵ 7 <span style="font-size:0.75rem; color:#64748b;">/km</span></div>
+            </div>
           </div>
 
-          <div class="vehicle-card" onclick="selectVehicle(this, 12.0)" data-type="Swift Haul (Van/Truck)">
-            <div class="vehicle-info">
-              <h4>Swift Haul</h4>
-              <p>Heavy cargo and large deliveries</p>
+          <div class="vehicle-card" onclick="selectVehicle(this, 9)" data-type="Swift Haul (Truck)">
+            <div class="vehicle-left">
+              <div class="icon-box truck-bg">
+                <i class="fa-solid fa-truck-ramp-box"></i>
+              </div>
+              <div class="vehicle-info">
+                <h4>Swift Haul <span class="badge">Truck / Van</span></h4>
+                <p>Heavy cargo & bulk shipments</p>
+              </div>
             </div>
-            <div class="vehicle-price">GH₵ 80+</div>
+            <div class="vehicle-price">
+              <div class="price-rate">GH₵ 9 <span style="font-size:0.75rem; color:#64748b;">/km</span></div>
+            </div>
           </div>
+
         </div>
 
+        <!-- Live Calculation Banner -->
         <div class="fare-summary" id="fareSummary">
-          <p>Estimated Distance: <strong id="estDistance">0 km</strong></p>
-          <p>Total Estimated Fee: <strong id="estFare">GH₵ 0.00</strong></p>
+          <div class="fare-row">
+            <span>Calculated Distance:</span>
+            <strong id="estDistance" style="color:#ffffff;">0 km</strong>
+          </div>
+          <div class="fare-row total">
+            <span>Total Fare:</span>
+            <span id="estFare">GH₵ 0.00</span>
+          </div>
         </div>
 
-        <button type="submit" class="btn" style="margin-top: 1rem;">Confirm & Request Swiftmove</button>
+        <button type="submit" class="btn">
+          <i class="fa-solid fa-paper-plane"></i> Book Order Now
+        </button>
       </form>
     </div>
 
-    <!-- Map Section -->
-    <div class="map-preview">
-      <div class="map-placeholder-text">
-        <p style="font-size: 2rem;">📍</p>
-        <p>Live Route Tracking</p>
-        <small>(Connects to Google Maps / Mapbox API)</small>
-      </div>
+    <!-- Interactive TomTom Map -->
+    <div class="card map-card">
+      <div id="map"></div>
     </div>
   </div>
 
   <script>
-    // 1. Manage User State on Load
-    document.addEventListener("DOMContentLoaded", () => {
-      const userDisplay = document.getElementById("userDisplay");
-      
-      // Fetch user info from localStorage or set a default
-      const savedUser = JSON.parse(localStorage.getItem("swiftmoveUser")) || { name: "Guest Customer" };
-      userDisplay.textContent = `👤 ${savedUser.name}`;
+    // --- 1. CONFIGURATION ---
+    const TOMTOM_API_KEY = "YOUR_TOMTOM_API_KEY"; // Insert your TomTom API key here
+    const SUPABASE_URL = "https://YOUR_SUPABASE_PROJECT_ID.supabase.co"; // Replace with your Supabase Project URL
+    const SUPABASE_PUBLISHABLE_KEY = "Sb_publishable_CazTNV2OzvBuZIiHH9tlxA_GrwIzeKY";
+
+    // Initialize Supabase Client
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    // Initialize TomTom Map Centered on Accra, Ghana
+    const map = tt.map({
+      key: TOMTOM_API_KEY,
+      container: 'map',
+      center: [-0.186964, 5.603717],
+      zoom: 12
     });
 
-    // 2. Service Selection Handling
-    let selectedMultiplier = 3.5;
+    // --- 2. STATE VARIABLES ---
+    let ratePerKm = 4; // Default Rate GH₵ 4/km
     let selectedType = "Swift Express (Bike)";
+    let calculatedDistanceKm = 0;
+    let pickupCoords = null;
+    let dropoffCoords = null;
+    let pickupMarker = null;
+    let dropoffMarker = null;
 
-    function selectVehicle(element, multiplier) {
+    // Check Supabase Auth State
+    document.addEventListener("DOMContentLoaded", async () => {
+      const userDisplay = document.getElementById("userDisplay");
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          userDisplay.innerHTML = `<i class="fa-solid fa-circle-user"></i> ${user.email}`;
+        } else {
+          userDisplay.innerHTML = `<i class="fa-solid fa-circle-user"></i> Guest Customer`;
+        }
+      } catch (err) {
+        userDisplay.innerHTML = `<i class="fa-solid fa-circle-user"></i> Guest Customer`;
+      }
+    });
+
+    // Tier Switching Function
+    function selectVehicle(element, rate) {
       document.querySelectorAll('.vehicle-card').forEach(card => card.classList.remove('selected'));
       element.classList.add('selected');
-      selectedMultiplier = multiplier;
+      ratePerKm = rate;
       selectedType = element.getAttribute('data-type');
       calculateFare();
     }
 
-    // 3. Dynamic Fare Calculation Logic
-    const pickupInput = document.getElementById('pickup');
-    const dropoffInput = document.getElementById('dropoff');
+    // --- 3. AUTOCOMPLETE & GEOCODING ---
+    function setupAutocomplete(inputId, dropdownId, onSelect) {
+      const input = document.getElementById(inputId);
+      const dropdown = document.getElementById(dropdownId);
 
-    pickupInput.addEventListener('input', calculateFare);
-    dropoffInput.addEventListener('input', calculateFare);
+      input.addEventListener('input', async () => {
+        const query = input.value.trim();
+        if (query.length < 3) {
+          dropdown.style.display = 'none';
+          return;
+        }
 
-    function calculateFare() {
-      const pickup = pickupInput.value.trim();
-      const dropoff = dropoffInput.value.trim();
+        const url = `https://api.tomtom.com/search/2/search/${encodeURIComponent(query)}.json?key=${TOMTOM_API_KEY}&countrySet=GH&limit=4`;
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          dropdown.innerHTML = '';
 
-      if (pickup !== "" && dropoff !== "") {
-        const mockDistanceKm = Math.max(2, (pickup.length + dropoff.length) % 15 + 2);
-        const baseFare = 10.00;
-        const totalFare = (baseFare + (mockDistanceKm * selectedMultiplier)).toFixed(2);
+          if (data.results && data.results.length > 0) {
+            dropdown.style.display = 'block';
+            data.results.forEach(result => {
+              const item = document.createElement('div');
+              item.className = 'suggestion-item';
+              item.innerHTML = `<i class="fa-solid fa-location-dot" style="color:#94a3b8"></i> ${result.address.freeformAddress}`;
+              item.addEventListener('click', () => {
+                input.value = result.address.freeformAddress;
+                dropdown.style.display = 'none';
+                onSelect(result.position);
+              });
+              dropdown.appendChild(item);
+            });
+          } else {
+            dropdown.style.display = 'none';
+          }
+        } catch (err) {
+          console.error("Autocomplete error", err);
+        }
+      });
 
-        document.getElementById('estDistance').textContent = `${mockDistanceKm} km`;
-        document.getElementById('estFare').textContent = `GH₵ ${totalFare}`;
-        document.getElementById('fareSummary').style.display = 'block';
-      } else {
-        document.getElementById('fareSummary').style.display = 'none';
+      // Close dropdown on click outside
+      document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = 'none';
+        }
+      });
+    }
+
+    // Set up live address autocomplete listeners
+    setupAutocomplete('pickup', 'pickupSuggestions', (coords) => {
+      pickupCoords = coords;
+      updateMarkersAndRoute();
+    });
+
+    setupAutocomplete('dropoff', 'dropoffSuggestions', (coords) => {
+      dropoffCoords = coords;
+      updateMarkersAndRoute();
+    });
+
+    // --- 4. MAP MARKERS & ROUTE CALCULATIONS ---
+    async function updateMarkersAndRoute() {
+      if (pickupCoords) {
+        if (pickupMarker) pickupMarker.remove();
+        pickupMarker = new tt.Marker({ color: '#22c55e' }).setLngLat([pickupCoords.lon, pickupCoords.lat]).addTo(map);
+      }
+
+      if (dropoffCoords) {
+        if (dropoffMarker) dropoffMarker.remove();
+        dropoffMarker = new tt.Marker({ color: '#ef4444' }).setLngLat([dropoffCoords.lon, dropoffCoords.lat]).addTo(map);
+      }
+
+      if (pickupCoords && dropoffCoords) {
+        // Center Map Bounds around points
+        const bounds = new tt.LngLatBounds();
+        bounds.extend([pickupCoords.lon, pickupCoords.lat]);
+        bounds.extend([dropoffCoords.lon, dropoffCoords.lat]);
+        map.fitBounds(bounds, { padding: 80 });
+
+        // Request TomTom Route API
+        const routeUrl = `https://api.tomtom.com/routing/1/calculateRoute/${pickupCoords.lat},${pickupCoords.lon}:${dropoffCoords.lat},${dropoffCoords.lon}/json?key=${TOMTOM_API_KEY}`;
+        const res = await fetch(routeUrl);
+        const data = await res.json();
+
+        if (data.routes && data.routes.length > 0) {
+          const lengthInMeters = data.routes[0].summary.lengthInMeters;
+          calculatedDistanceKm = (lengthInMeters / 1000).toFixed(2);
+          calculateFare();
+        }
       }
     }
 
-    // 4. Form Submission
-    document.getElementById('bookingForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const pickup = pickupInput.value;
-      const dropoff = dropoffInput.value;
-      const fare = document.getElementById('estFare').textContent;
+    function calculateFare() {
+      if (calculatedDistanceKm > 0) {
+        const totalFare = (calculatedDistanceKm * ratePerKm).toFixed(2);
+        document.getElementById('estDistance').textContent = `${calculatedDistanceKm} km`;
+        document.getElementById('estFare').textContent = `GH₵ ${totalFare}`;
+        document.getElementById('fareSummary').style.display = 'block';
+      }
+    }
 
-      alert(`⚡ Swiftmove Order Placed!\n\nPickup: ${pickup}\nDropoff: ${dropoff}\nService: ${selectedType}\nEstimated Cost: ${fare}`);
+    // --- 5. SUBMIT TO SUPABASE ---
+    document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pickup = document.getElementById('pickup').value;
+      const dropoff = document.getElementById('dropoff').value;
+      
+      if (!calculatedDistanceKm || calculatedDistanceKm === 0) {
+        alert("Please select valid pickup and dropoff locations from the suggestions.");
+        return;
+      }
+
+      const totalFare = (calculatedDistanceKm * ratePerKm).toFixed(2);
+
+      // Save order to Supabase database
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert([
+          { 
+            pickup_location: pickup, 
+            dropoff_location: dropoff, 
+            service_type: selectedType, 
+            distance_km: parseFloat(calculatedDistanceKm), 
+            total_fare_ghc: parseFloat(totalFare),
+            status: 'pending'
+          }
+        ]);
+
+      if (error) {
+        alert("Error saving booking: " + error.message);
+      } else {
+        alert(`⚡ Swiftmove Delivery Confirmed!\n\nPickup: ${pickup}\nDropoff: ${dropoff}\nService: ${selectedType}\nDistance: ${calculatedDistanceKm} km\nTotal Fare: GH₵ ${totalFare}`);
+      }
     });
   </script>
 </body>
